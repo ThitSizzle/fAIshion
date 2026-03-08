@@ -1,0 +1,6 @@
+# So we don't import the entire .venv library and also so we don't just have user keys in the public repository
+.venv/
+
+.env
+
+__pycache__/
