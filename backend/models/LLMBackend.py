@@ -11,17 +11,26 @@ client = OpenAI(
 )
 
 def get_fashion_advice(data):
-    model_name = "gpt-4o" 
-
+    model_name = "gpt-4o"
+    shape = data.get('bodyShape', 'Unknown')
+    prop = data.get('proportion', 'Unknown')
+    skin = data.get('skin_rgb', 'Unknown')
+    ratio = data.get('ratio', 'N/A')
     try:
         response = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a professional fashion stylist. Give 3 short tips."},
-                {"role": "user", "content": f"User Shape: {data['bodyShape']}, Ratio: {data['ratio']}"}
+                {
+                    "role": "system", 
+                    "content": "You are a professional fashion stylist. Use the user's body shape, vertical proportions, and skin color (RGB) to give 3 highly specific, concise styling tips."
+                },
+                {
+                    "role": "user", 
+                    "content": f"Body Shape: {shape} (Shoulder/Hip Ratio: {ratio}), Vertical Proportion: {prop}, Skin Color (RGB): {skin}."
+                }
             ],
             model=model_name,
             temperature=0.8
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"AI Stylist is busy, but your shape is {data['bodyShape']}!"
+        return f"AI Stylist is busy, but we detected a {shape} shape with {prop}!"

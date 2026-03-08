@@ -26,20 +26,25 @@ def run_ai_pipeline(file_path):
     print("-" * 50)
 
     # 2. THE EYES: Run your partner's MediaPipe Analyzer
-    print("👀 Analyzing body proportions...")
+    print("👀 Analyzing body proportions and skin tone...")
     results = analyzeImage(file_path)
 
     if results.get("error"):
         print(f"❌ ANALYZER ERROR: {results['error']}")
+        # Move the failed file so it doesn't get stuck in an infinite loop
+        shutil.move(file_path, os.path.join(OUT_DIR, filename))
         return
 
-    print(f"✅ Shape: {results['bodyShape']}")
-    print(f"✅ Ratio: {results['ratio']}")
+    # UPDATED: Printing all the new data points for the judges to see
+    print(f"✅ Shape: {results.get('bodyShape')}")
+    print(f"✅ Ratio: {results.get('ratio')}")
+    print(f"✅ Proportion: {results.get('proportion')}")
+    print(f"✅ Skin RGB: {results.get('skin_rgb')}")
 
     # 3. THE BRAIN: Run your GitHub/Llama LLM
-    print("🧠 Consulting the AI Stylist...")
+    print("\n🧠 Consulting the AI Stylist...")
     try:
-        # This calls the function in your LLMBackend.py
+        # This sends the FULL results (including proportion and skin) to the LLM
         advice = get_fashion_advice(results)
         print("\n✨ [AI FASHION ADVICE]:")
         print(advice)
@@ -62,12 +67,13 @@ if __name__ == "__main__":
 
     try:
         while True:
-            # Check for images every second
-            files = [f for f in os.listdir(WATCH_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+            # Check for images every second, ignoring hidden files like .DS_Store
+            files = [f for f in os.listdir(WATCH_DIR) 
+                     if f.lower().endswith(('.png', '.jpg', '.jpeg')) and not f.startswith('.')]
             
             for f in files:
                 full_path = os.path.join(WATCH_DIR, f)
-                time.sleep(0.5) # Wait for file to finish copying/dropping
+                time.sleep(1.0) # Increased slightly to ensure file is fully written
                 run_ai_pipeline(full_path)
             
             time.sleep(1) 
